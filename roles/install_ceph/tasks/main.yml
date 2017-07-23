@@ -2,6 +2,8 @@
    - name: Install ceph-ansible
      yum: name=ceph-ansible state=present
   rescue:
+    - name: install ansible 
+      yum: name=ansible state=present
     - name: download ceph-ansible rpm file 
       get_url:
          url:  http://cbs.centos.org/kojifiles/packages/ceph-ansible/2.1.9/3.gfd93045.el7/noarch/ceph-ansible-2.1.9-3.gfd93045.el7.noarch.rpm
