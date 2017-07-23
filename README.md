@@ -4,6 +4,10 @@ ceph-ansible is a project maintained by ceph community that aims to install ceph
 
 ir-plugin-ceph wraps ceph-ansible [1] and facilitates ceph-ansible driven installation from as an infrared plugin. But is also can be used as a stand-alone ansible wrapper for ceph-ansible.
 
+OS support
+----------
+This code was tested on
+- RHEL 7.3 (host) / CentOS 7.3 (vm)
 
 Using this code as an infrared plugin
 --------------------------------------------
