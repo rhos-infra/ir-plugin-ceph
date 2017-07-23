@@ -1,0 +1,5 @@
+install:
+  host:
+    ip: 10.0.0.28 
+    username: root
+    key_file: /home/dsariel/.ssh/id_rsa
