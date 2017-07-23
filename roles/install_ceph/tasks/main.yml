@@ -1,0 +1,4 @@
+- name: print IPs 
+  shell: ehco "{{item}}"
+  with_items: groups['all']
+
