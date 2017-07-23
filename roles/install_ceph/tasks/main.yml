@@ -2,11 +2,9 @@
    - name: Install ceph-ansible
      yum: name=ceph-ansible state=present
   rescue:
-    - name: if the previous command did not succeed try installing from rpm
-      yum: name=wget state=present
     - shell: "{{item}}"
       with_items:
-        - "wget http://cbs.centos.org/kojifiles/packages/ceph-ansible/1.1.9/3.gfd93045.el7/noarch/ceph-ansible-2.1.9-3.gfd93045.el7.noarch.rpm"
+        - "curl -O http://cbs.centos.org/kojifiles/packages/ceph-ansible/1.1.9/3.gfd93045.el7/noarch/ceph-ansible-2.1.9-3.gfd93045.el7.noarch.rpm"
         - "rpm -i ceph-ansible-2.1.9-3.gfd93045.el7.noarch.rpm"
 
 - name: ignore the SSH authenticity checking made by Ansible
