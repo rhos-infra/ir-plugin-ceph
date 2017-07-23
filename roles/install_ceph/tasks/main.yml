@@ -2,11 +2,17 @@
    - name: Install ceph-ansible
      yum: name=ceph-ansible state=present
   rescue:
+    - name: download ceph-ansible rpm file 
+      get_url:
+         url:  http://cbs.centos.org/kojifiles/packages/ceph-ansible/2.1.9/3.gfd93045.el7/noarch/ceph-ansible-2.1.9-3.gfd93045.el7.noarch.rpm
+         dest: /tmp
+         mode: 0440
     - shell: "{{item}}"
       with_items:
-        - "curl -O http://cbs.centos.org/kojifiles/packages/ceph-ansible/1.1.9/3.gfd93045.el7/noarch/ceph-ansible-2.1.9-3.gfd93045.el7.noarch.rpm"
         - "rpm -i ceph-ansible-2.1.9-3.gfd93045.el7.noarch.rpm"
-
+      args:
+        chdir: /tmp
+ 
 - name: ignore the SSH authenticity checking made by Ansible
   lineinfile: dest=/usr/share/ceph-ansible/ansible.cfg line="host_key_checking = False"  insertafter=EOF state=present
 
