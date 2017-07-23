@@ -13,14 +13,13 @@ Using this code as an infrared plugin
 --------------------------------------------
 Since infrared updates ansible inventory file to contain provisioned ceph nodes in [ceph] group, all is needed is to add infrared puling and run the installation with enabled/disabled containers 
 
-``
-infrared plugin add "https://review.gerrithub.io/rhos-infra/ir-plugin-ceph"
+```infrared plugin add "https://review.gerrithub.io/rhos-infra/ir-plugin-ceph"
 infrared install-ceph --containers-enabled true
-``
+```
 or
-``
-infrared install-ceph --containers-enabled false
-``
+
+```infrared install-ceph --containers-enabled false
+```
 
 Using this code as an ansile playbook
 ---------------------------------------------
@@ -31,3 +30,8 @@ Following steps are required
 3. updates params.yml with your <vm_ip>
 4. run ansible-playbook -i hosts main.yml  -e@params.yml
 
+
+Refs
+----
+
+[1] https://github.com/ceph/ceph-ansible
