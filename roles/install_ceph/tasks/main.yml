@@ -1,6 +1,3 @@
-- name: Ceph health 
-  shell: ceph -s 
-
 - block:
    - name: Install ceph-ansible
      yum: name=ceph-ansible state=present
@@ -19,7 +16,7 @@
   copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/all.yml.sample dest=/usr/share/ceph-ansible/group_vars/all.yml
 - name: Configure package origin
   lineinfile: dest=/usr/share/ceph-ansible/group_vars/all.yml line="ceph_origin{{":"}} 'upstream'" insertafter=EOF state=present
-- name: Configure all.yml 
+- name: Configure all.yml
   blockinfile:
     path: /usr/share/ceph-ansible/group_vars/all.yml
     block: |
@@ -41,7 +38,7 @@
 - name: Copy osds.yml.sample to osds.yml
   copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/osds.yml.sample dest=/usr/share/ceph-ansible/group_vars/osds.yml
 
-- name: Configure osds.yml 
+- name: Configure osds.yml
   blockinfile:
     path: /usr/share/ceph-ansible/group_vars/osds.yml
     block: |
@@ -78,10 +75,17 @@
 - name: install python-netaddr required to resolve ansible_default_ipv4.address
   yum: name=python-netaddr state=present
 
-- name: Install ceph 
+- name: Install ceph
   shell: ansible-playbook -vv -i hosts site.yml
   args:
      chdir: /usr/share/ceph-ansible
+
+- name: Workaround. Fix ceph cluster health by reducing the number of replicas in each pool 
+  shell: "{{ item }}"
+  with_items:
+    - "ceph osd pool set rbd size 1"
+    - "ceph osd pool set cephfs_data size 1"
+    - "ceph osd pool set cephfs_metadata size 1"
 
 - name: Ceph health
   shell: ceph -s
