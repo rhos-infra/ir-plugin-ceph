@@ -2,6 +2,8 @@
    - name: Install ceph-ansible
      yum: name=ceph-ansible state=present
   rescue:
+    - name: install epel for ansible
+      shell: rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     - name: install ansible 
       yum: name=ansible state=present
     - name: download ceph-ansible rpm file 
