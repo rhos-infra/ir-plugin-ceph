@@ -6,8 +6,8 @@ ir-plugin-ceph wraps ceph-ansible [1] and facilitates ceph-ansible driven instal
 
 OS support
 ----------
-This code was tested on
-- RHEL 7.3 (host) / CentOS 7.3 (vm)
+This code was verified to deploy ceph on: 
+- CentOS 7.3 (vm)
 
 Using this code as an infrared plugin
 --------------------------------------------
@@ -22,6 +22,9 @@ or
 ```
 infrared install-ceph --containers-enabled false
 ```
+
+Note: currently --containers-enabled param makes difference and on CentOS ceph will be deployed uncontainerized
+
 
 Using this code as an ansile playbook
 ---------------------------------------------
