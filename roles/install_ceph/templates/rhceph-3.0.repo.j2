@@ -1,0 +1,33 @@
+[RHCEPH-3.0-RHEL-7-MON]
+name = RHCEPH-3.0-RHEL-7-20170721.ci.0 MON
+baseurl = http://download.devel.redhat.com/composes/auto/ceph-3.0-rhel-7/latest-RHCEPH-3-RHEL-7/compose/MON/x86_64/os
+enabled = 1
+gpgcheck = 1
+gpgkey = http://file.rdu.redhat.com/~kdreyer/keys/00da75f2.txt
+
+[RHCEPH-3.0-RHEL-7-OSD]
+name = RHCEPH-3.0-RHEL-7-20170721.ci.0 OSD
+baseurl = http://download.devel.redhat.com/composes/auto/ceph-3.0-rhel-7/latest-RHCEPH-3-RHEL-7/compose/OSD/x86_64/os
+enabled = 1
+gpgcheck = 1
+gpgkey = http://file.rdu.redhat.com/~kdreyer/keys/00da75f2.txt
+
+[RHCEPH-3.0-RHEL-7-Tools]
+name = RHCEPH-3.0-RHEL-7-20170721.ci.0 Tools
+baseurl = http://download.devel.redhat.com/composes/auto/ceph-3.0-rhel-7/latest-RHCEPH-3-RHEL-7/compose/Tools/x86_64/os
+enabled = 1
+gpgcheck = 1
+gpgkey = http://file.rdu.redhat.com/~kdreyer/keys/00da75f2.txt
+
+[rhel-7]
+name = Red Hat Enterprise Linux 7
+baseurl = http://download.engineering.redhat.com/nightly/latest-RHEL-7/compose/Server/$basearch/os/
+enabled = 1
+gpgcheck = 0
+
+[rhel-7-extras]
+name = Red Hat Enterprise Linux 7 extras
+baseurl = http://download.engineering.redhat.com/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/$basearch/os/
+enabled = 1
+gpgcheck = 0
+

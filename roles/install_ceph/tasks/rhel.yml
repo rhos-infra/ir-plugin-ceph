@@ -1,0 +1,112 @@
+- name: setup rhceph-3.0.repo
+  template: src=./templates/rhceph-3.0.repo.j2 dest=/etc/yum.repos.d/rhceph-3.0.repo
+
+- name: check for subscription
+  command: subscription-manager identity
+  become: yes
+  ignore_errors: yes
+  register: cdn_status
+
+- name: Register as user (subscr_user) with password (subscr_passwd) and auto-subscribe to available content if needed
+  redhat_subscription:
+     server_hostname: "{{subscr_server}}" 
+     state: present
+     username: "{{ subscr_user}}"
+     password: "{{ subscr_password }}"
+     autosubscribe: true
+     server_insecure: yes
+  when: cdn_status|failed
+  retries: 10
+  delay: 1
+  ignore_errors: yes
+  
+- name: Install ceph-ansible
+  yum: name=ceph-ansible state=present
+
+
+- name: ignore the SSH authenticity checking made by Ansible
+  lineinfile: dest=/usr/share/ceph-ansible/ansible.cfg line="host_key_checking = False"  insertafter=EOF state=present
+
+- name: Copy all.yml.sample to all.yml
+  copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/all.yml.sample dest=/usr/share/ceph-ansible/group_vars/all.yml
+- name: Configure package origin
+  lineinfile: dest=/usr/share/ceph-ansible/group_vars/all.yml line="ceph_origin{{":"}} 'upstream'" insertafter=EOF state=present
+- name: Configure all.yml
+  blockinfile:
+    path: /usr/share/ceph-ansible/group_vars/all.yml
+    block: |
+      ceph_stable: true
+      cephx: true
+      monitor_address: "{{ansible_default_ipv4.address}}"
+      journal_size: 128
+      public_network: "{{ ansible_default_ipv4.address}}/{{ ansible_default_ipv4.netmask | ipaddr('prefix') }}"
+      ceph_conf_overrides:
+          global:
+            osd max object name len: 256
+            osd max object namespace len: 64
+            osd pool default size: 1
+            osd pool default min size: 1
+            osd pool default pg num: 128
+
+
+- name: Copy mons.yml.sample to mons.yml
+  copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/mons.yml.sample dest=/usr/share/ceph-ansible/group_vars/mons.yml
+
+
+- name: Copy osds.yml.sample to osds.yml
+  copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/osds.yml.sample dest=/usr/share/ceph-ansible/group_vars/osds.yml
+
+- name: Configure osds.yml
+  blockinfile:
+    path: /usr/share/ceph-ansible/group_vars/osds.yml
+    block: |
+      crush_location: true
+      osd_crush_location: "'root=ceph_crush_root rack=ceph_crush_rack host={{ ansible_hostname }}'"
+      devices:
+        - /dev/vdb1
+        - /dev/vdb2 
+      journal_collocation: true
+
+
+- name: Copy site.yml.sample to site.yml
+  copy: remote_src=True src=/usr/share/ceph-ansible/site.yml.sample dest=/usr/share/ceph-ansible/site.yml
+
+- name: Create and configure hosts file
+  blockinfile:
+    path: /usr/share/ceph-ansible/hosts
+    create: yes
+    block: |
+      [clients]
+      localhost ansible_connection=local
+      
+      [mons]
+      localhost ansible_connection=local
+      
+      [osds]
+      localhost ansible_connection=local
+      
+      [mdss]
+      localhost ansible_connection=local
+      
+      [restapis]
+      localhost ansible_connection=local
+
+- name: install python-netaddr required to resolve ansible_default_ipv4.address
+  yum: name=python-netaddr state=present
+
+- name: Install ceph
+  shell: ansible-playbook -vv -i hosts site.yml
+  args:
+     chdir: /usr/share/ceph-ansible
+
+- name: Workaround. Fix ceph cluster health by reducing the number of replicas in each pool
+  shell: "{{ item }}"
+  with_items:
+    - "ceph osd pool set cephfs_data size 1"
+    - "ceph osd pool set cephfs_metadata size 1"
+
+- name: Ceph health
+  shell: ceph -s
+  register: command_result
+  failed_when: "'HEALTH_OK' not in command_result.stdout"
+
