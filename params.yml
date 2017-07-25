@@ -1,6 +1,9 @@
+subscr_server: X.Y.Z.com
+subscr_user: username@redhat.com
+subscr_password: passwd
 install:
   host:
-    ip: 10.0.0.28 
+    ip: 10.0.0.26
     username: root
     key_file: /home/dsariel/.ssh/id_rsa
   containers:
