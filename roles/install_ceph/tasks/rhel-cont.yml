@@ -35,79 +35,28 @@
   blockinfile:
     path: /usr/share/ceph-ansible/group_vars/all.yml
     block: |
+      ceph_origin: 'upstream'
       ceph_stable: true
-      monitor_address: "{{ansible_default_ipv4.address}}"
-      journal_size: 10000 
+      ceph_docker_image: rhceph
+      ceph_docker_image_tag: 2.3
+      journal_size: 100
+      docker: true
+      mon_containerized_deployment: ‘true’
+      ceph_docker_registry: rhceph
       public_network: "{{ ansible_default_ipv4.address}}/{{ ansible_default_ipv4.netmask | ipaddr('prefix') }}"
-      monitor_interface: eth0
-      ceph_mon_docker_interface: eth0
-      ceph_mon_docker_subnet: 10.0.0.0/24
-      generate_fsid: true
-      ceph_conf_overrides:
-         global:
-           osd pool default size: 1
-           osd pool default pg num: 512
-           osd pool default pgp num: 512
-         mon:
-           debug mon: 1
-         osd:
-           debug osd: 0
-           osd mkfs type: ext4
-           osd max object name len: 256
-           osd max object namespace len: 64
-           osd journal size: 10000
-         mds:
-           debug ms: 0
-           debug mds: 0
-           max mds: 5
-           mds log: true
-           mds bal max until: -1
-           mds bal mode: 2
-           mds log max expiring: 40
-           mds log max segments: 120
-         client:
-           debug client: 0
-      mon_group_name: mons
-      osd_group_name: osds
-      rgw_group_name: rgws
-      mds_group_name: mdss
-      restapi_group_name: restapis
-      client_group_name: clients
-      radosgw_civetweb_port: 8080
-      docker: true 
-      ceph_docker_image: "ceph/daemon"
-      ceph_docker_image_tag: latest
-      containerized_deployment: true 
-      ceph_docker_registry: docker.io
+      ceph_mon_docker_interface: "{{ ansible_default_ipv4.interface}}" 
+      ceph_mon_docker_subnet: "{{ ansible_default_ipv4.address}}/{{ ansible_default_ipv4.netmask | ipaddr('prefix') }}"
+      monitor_interface: "{{ ansible_default_ipv4.interface}}"
 
-      containerized_deployment_with_kv: true
-      mon_containerized_default_ceph_conf_with_kv: true
-      kv_type: etcd
-      kv_endpoint: 127.0.0.1
-      kv_port: 4001
-      containerized_deployment_with_kv: true
-
-
-- name: Copy mons.yml.sample to mons.yml
-  copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/mons.yml.sample dest=/usr/share/ceph-ansible/group_vars/mons.yml
-  when: install.containers.enabled == True
+- name: Copy rgws.yml.sample to rgws.yml
+  copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/rgws.yml.sample dest=/usr/share/ceph-ansible/group_vars/rgws.yml
     
-- name: Configure mons.yml additions for docker
+- name: Configure rgws.yml additions for docker
   blockinfile:
-    path: /usr/share/ceph-ansible/group_vars/mons.yml
+    path: /usr/share/ceph-ansible/group_vars/rgws.yml
     block: |
-      mon_group_name: mons
-      mon_containerized_deployment: true
-  when: install.containers.enabled == True
+      rgw_containerized_deployment: true
 
-#
-#- name: copy prepare_osd.sh
-#  template: src=./templates/prepare_osd.sh.j2 dest=/tmp/prepare_osd.sh
-
-#- name: perpare osd (todo use built in ansible module)
-#  shell: chmod +x /tmp/prepare_osd.sh; /tmp/prepare_osd.sh
-
-# (TODO: figure out N from /dev/loopN and update osds.yml)
 
 - name: Copy osds.yml.sample to osds.yml
   copy: remote_src=True src=/usr/share/ceph-ansible/group_vars/osds.yml.sample dest=/usr/share/ceph-ansible/group_vars/osds.yml
@@ -116,30 +65,21 @@
   blockinfile:
     path: /usr/share/ceph-ansible/group_vars/osds.yml
     block: |
-      journal_size: 10000
-      osd_containerized_deployment: true
-      crush_location: true
-      osd_crush_location: "'root=ceph_crush_root rack=ceph_crush_rack host={{ ansible_hostname }}'"
-      ceph_osd_docker_devices:
-        - /dev/vdb1
-        - /dev/vdb2
       devices:
-        - /dev/vdb1
-        - /dev/vdb2
-      journal_collocation: true
-  when: install.containers.enabled == True
+        - /dev/vdb
+      journal_collocation: true 
+      osd_containerized_deployment: 'true'
+      ceph_osd_docker_devices:
+        - /dev/vdb 
+      ceph_osd_docker_prepare_env: -e CLUSTER={{ '"{{' }} cluster {{ '}}"' }} -e OSD_JOURNAL_SIZE={{ '"{{' }} journal_size {{ '}}"' }} -e OSD_FORCE_ZAP=1 -e OSD_FILESTORE=1
+      ceph_osd_docker_extra_env: -e CLUSTER={{ '"{{' }} cluster {{ '}}"' }} -e CEPH_DAEMON=OSD_CEPH_DISK_ACTIVATE -e OSD_JOURNAL_SIZE={{ '"{{' }} journal_size {{ '}}"' }} -e OSD_FILESTORE=1
 
 #      ceph_osd_docker_devices: {{ '"{{' }} devices {{ '}}"' }}
 #      ceph_osd_docker_prepare_env: -e CLUSTER={{ '{{' }} cluster {{ '}}' }} -e OSD_JOURNAL_SIZE={{ '{{' }} journal_size {{ '}}' }} -e OSD_FORCE_ZAP=1"
 
-
-- name: Copy site.yml.sample to site.yml
-  copy: remote_src=True src=/usr/share/ceph-ansible/site.yml.sample dest=/usr/share/ceph-ansible/site.yml
-  when: install.containers.enabled == False
   
 - name: Copy site-docker.yml.sample to site.yml
   copy: remote_src=True src=/usr/share/ceph-ansible/site-docker.yml.sample dest=/usr/share/ceph-ansible/site.yml
-  when: install.containers.enabled == True
 
 - name: Create and configure hosts file
   blockinfile:
